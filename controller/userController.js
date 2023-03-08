@@ -2,7 +2,8 @@ const User = require('../models/userModel');
 const asyncHandler = require('express-async-handler');
 const { generateToken } = require('../config/jwtToken');
 const validateMongoId = require('../utils/validateMongoDBID');
-
+const { generateRefreshToken } = require('../config/refreshToken');
+const jwt = require('jsonwebtoken');
 
 // * create new user
 const createUser = asyncHandler(async (req, res) => {
@@ -16,10 +17,6 @@ const createUser = asyncHandler(async (req, res) => {
             res.status(201).send({ status: 201, message: "User has registered successfully", data: newUser });
         } else {
             // * user already exists
-            // res.json({
-            //     message: "User Already Exists",
-            //     success: false
-            // });
             throw new Error("User Already Exists");
         }
     } catch (err) {
@@ -35,6 +32,13 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
     const findUser = await User.findOne({ email });
 
     if (findUser && await findUser.ispPasswordMatch(password)) {
+        const refreshToken = await generateRefreshToken(findUser?._id);
+        const updateUser = await User.findByIdAndUpdate(findUser.id,
+            { refreshToken: refreshToken }, { new: true });
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            maxAge: 72 * 60 * 60 * 1000,
+        })
         res.json({
             _id: findUser?._id,
             firstname: findUser?.firstname,
@@ -88,7 +92,50 @@ const deleteAUser = asyncHandler(async (req, res) => {
     }
 });
 
+const handleRefreshToken = asyncHandler(async (req, res) => {
+    const cookie = req.cookies;
+    // console.log(cookie);
+    if (!cookie?.refreshToken) throw new Error("no Refresh Token in Cookies");
+    const refreshToken = cookie.refreshToken;
+    console.log(refreshToken);
+    const user = await User.findOne({ refreshToken });
+    if (!user) throw new Error("Ni Refresh token present in DB or not matched");
+    jwt.verify(refreshToken, process.env.JWT_SECRET, (err, decoded) => {
+        console.log(decoded);
+        if (err || user.id !== decoded.id) {
+            throw new Error("There is something wrong with refresh token");
+        }
+        const accessToken = generateRefreshToken(user?._id);
+        res.json({ accessToken });
+    });
 
+});
+
+
+// * user logout fucntionality
+
+const logout = asyncHandler(async (req, res) => {
+    const cookie = req.cookies;
+    if (!cookie?.refreshToken) throw new Error('No Refresh Token in Cookies');
+    const refreshToken = cookie.refreshToken;
+    const user = await User.findOne({ refreshToken });
+    if (!user) {
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: true
+        });
+        return res.sendStatus(204); // logout
+    }
+
+    await User.findOneAndUpdate(refreshToken, {
+        refreshToken: ""
+    });
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: true
+    });
+    return res.sendStatus(204); // logout
+});
 
 // * update a user
 
@@ -156,4 +203,6 @@ module.exports = {
     updateUser,
     blockUser,
     unblockUser,
+    handleRefreshToken,
+    logout,
 };
