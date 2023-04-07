@@ -94,7 +94,6 @@ const deleteAUser = asyncHandler(async (req, res) => {
 
 const handleRefreshToken = asyncHandler(async (req, res) => {
     const cookie = req.cookies;
-    // console.log(cookie);
     if (!cookie?.refreshToken) throw new Error("no Refresh Token in Cookies");
     const refreshToken = cookie.refreshToken;
     console.log(refreshToken);
