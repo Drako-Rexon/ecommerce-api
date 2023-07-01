@@ -8,11 +8,11 @@ const PORT = process.env.PORT || 4000;
 const authRoute = require('./routes/authRoute');
 const productRoute = require('./routes/productRoute');
 const cookieParser = require('cookie-parser');
-// const morgan = require('morgan');
+const morgan = require('morgan');
 
 dbConnect();
 
-// app.use(morgan());
+app.use(morgan("dev"));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -25,10 +25,8 @@ app.get('/', (req, res) => {
     }
 });
 
-
 app.use('/api/users', authRoute);
 app.use('/api/product', productRoute);
-
 
 app.use(notFound);
 app.use(errorHandler);
