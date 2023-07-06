@@ -66,14 +66,14 @@ userSchema.methods.ispPasswordMatch = async function (enteredPassword) {
 }
 
 userSchema.methods.createPasswordResetToken = async function () {
-    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resettoken = crypto.randomBytes(32).toString("hex");
     this.passwordResetToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
-    this.passwordResetExpires = Date.now() + 30 * 60 * 1000; // ! 10 minutes
-    return resetToken;
-}
+      .createHash("sha256")
+      .update(resettoken)
+      .digest("hex");
+    this.passwordResetExpires = Date.now() + 30 * 60 * 1000; // 10 minutes
+    return resettoken;
+  };
 
 //Export the model
 module.exports = mongoose.model('User', userSchema);
