@@ -5,10 +5,12 @@ const dbConnect = require('./config/dbConnect');
 const { notFound, errorHandler } = require('./middlewares/errorHandler');
 const app = express();
 const PORT = process.env.PORT; // || 4000;
-const authRoute = require('./routes/authRoute');
-const productRoute = require('./routes/productRoute');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
+const authRoute = require('./routes/authRoute');
+const productRoute = require('./routes/productRoute');
+const blogRoute = require('./routes/blogRoute');
+
 
 dbConnect();
 
@@ -27,6 +29,7 @@ app.get('/', (req, res) => {
 
 app.use('/api/users', authRoute);
 app.use('/api/product', productRoute);
+app.use('/api/blogs', blogRoute);
 
 app.use(notFound);
 app.use(errorHandler);
