@@ -18,7 +18,7 @@ const sendEmail = asyncHandler(async (data, req, res) => {
         to: data.to,
         subject: data.subject,
         text: data.text,
-        htm: data.htm,
+        html: data.html,
     });
 
 

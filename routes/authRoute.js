@@ -13,12 +13,14 @@ const {
     handleRefreshToken,
     logout,
     updatePassword,
-    forgotPasswordToken
+    forgotPasswordToken,
+    resetPassword
 } = require('../controller/userController');
 
 router.post('/register', createUser);
 router.put('/password', authMiddleware, updatePassword);
 router.post('/forgot-password-token', forgotPasswordToken);
+router.put('/reset-password/:token', resetPassword);
 router.post('/login', loginUserCtrl);
 router.get('/all-users', getAllUsers);
 router.get('/refresh', handleRefreshToken);

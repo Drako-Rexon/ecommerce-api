@@ -5,6 +5,7 @@ const validateMongoId = require('../utils/validateMongoDBID');
 const { generateRefreshToken } = require('../config/refreshToken');
 const jwt = require('jsonwebtoken');
 const sendEmail = require('./emailController');
+const crypto = require('crypto');
 
 // * create new user
 const createUser = asyncHandler(async (req, res) => {
@@ -208,6 +209,7 @@ const updatePassword = asyncHandler(async (req, res) => {
     }
 });
 
+// * generating reset token for forgetting password
 const forgotPasswordToken = asyncHandler(async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
@@ -218,12 +220,12 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
     try {
         const token = await user.createPasswordResetToken();
         await user.save();
-        const resetUrl = `Hi! Please follow this link to reset your password. This link is valid till 10 minutes from now. <a href='http://localhost:3000/api/user/reset-password/${token}>Click Here</a>`;
+        const resetUrl = `Hi! Please follow this link to reset your password. This link is valid till 10 minutes from now. <a href="localhost:3000/api/users/reset-password/${token}">Click Here</a>`;
         const data = {
             to: email,
             text: "Hi User",
             subject: "Forgot Password Link",
-            htm: resetUrl
+            html: resetUrl
         };
         sendEmail(data);
         res.json(token);
@@ -231,6 +233,25 @@ const forgotPasswordToken = asyncHandler(async (req, res) => {
     } catch (error) {
         throw new Error(error)
     }
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+    const { password } = req.body;
+    const { token } = req.params;
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const user = await User.findOne({
+        passwordResetToken: hashedToken,
+        passwordResetExpires: { $gt: Date.now() },
+    });
+
+    if (!user) throw new Error('Token Expired, PLease try again later');
+
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+
+    await user.save();
+    res.json(user);
 
 });
 
@@ -246,5 +267,6 @@ module.exports = {
     handleRefreshToken,
     logout,
     updatePassword,
-    forgotPasswordToken
+    forgotPasswordToken,
+    resetPassword,
 };
