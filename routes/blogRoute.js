@@ -1,7 +1,14 @@
 const express = require('express');
 const { authMiddleware, isAdmin } = require('../middlewares/authMiddleware');
 const router = express.Router();
-const { createBlog, updateBlog, getBlog, getAllBlogs, deleteBlog, likeBlog, dislikeBlog } = require('../controller/blogCtrl');
+const { createBlog,
+  updateBlog,
+  getBlog,
+  getAllBlogs,
+  deleteBlog,
+  likeBlog,
+  dislikeBlog
+} = require('../controller/blogCtrl');
 
 router.get('/:id', getBlog);
 router.get('/', getAllBlogs);
