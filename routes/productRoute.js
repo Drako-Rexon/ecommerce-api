@@ -1,10 +1,16 @@
 const router = require('express').Router();
 const {
-    createProduct, getaProduct, getAllProducts, updateProducts, deleteProducts,
+    createProduct,
+    getaProduct,
+    getAllProducts,
+    updateProducts,
+    deleteProducts,
+    addToWishlist,
 } = require('../controller/productCtrl');
 const { isAdmin, authMiddleware } = require('../middlewares/authMiddleware');
 
 router.post('/', authMiddleware, isAdmin, createProduct);
+router.put('/wishlist', authMiddleware, addToWishlist);
 router.get('/:id', getaProduct);
 router.put('/:id', authMiddleware, isAdmin, updateProducts);
 router.delete('/:id', authMiddleware, isAdmin, deleteProducts);
