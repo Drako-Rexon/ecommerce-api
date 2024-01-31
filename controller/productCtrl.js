@@ -1,4 +1,3 @@
-const { query } = require('express');
 const Product = require('../models/productModel');
 const User = require('../models/userModel');
 const asyncHandler = require('express-async-handler');
@@ -15,7 +14,6 @@ const createProduct = asyncHandler(async (req, res) => {
         throw new Error(err);
     }
 });
-
 
 const updateProducts = asyncHandler(async (req, res) => {
     const id = req.params;
@@ -123,13 +121,60 @@ const addToWishlist = asyncHandler(async (req, res) => {
     }
 });
 
+const rating = asyncHandler(async (req, res) => {
+    const { _id } = req.user;
+    const { star, productId, comment } = req.body;
+
+    try {
+        const product = await Product.findById(productId);
+        // console.log(product.ratings.find((data) => data._id));
+        let alreadyRated = product.ratings.find(
+            (userId) => userId.postedby.toString() === _id.toString()
+        );
+
+        if (alreadyRated) {
+            const updateRating = await Product.updateOne(
+                { ratings: { $elemMatch: alreadyRated }, },
+                { $set: { "ratings.$.star": star, "ratings.$.comment": comment } },
+                { new: true }
+            );
+        } else {
+            const rateProduct = await Product.findByIdAndUpdate(
+                productId,
+                {
+                    $push: {
+                        ratings: {
+                            star: star, comment: comment,
+                            postedby: _id
+                        }
+                    }
+                },
+                {
+                    new: true
+                }
+            );
+        }
+
+        const getAllRatings = await Product.findById(productId);
+        let totalRating = getAllRatings.ratings.length;
+        let ratingSum = getAllRatings.ratings.map((item) => item.star).reduce((prev, curr) => prev + curr, 0);
+        let actualRating = Math.round(ratingSum / totalRating);
+        let finalproduct = await Product.findByIdAndUpdate(productId, {
+            totalRating: actualRating
+        }, { new: true });
+
+        res.json(finalproduct);
+    } catch (err) {
+        throw new Error(err);
+    }
+})
+
 module.exports = {
     createProduct,
     getaProduct,
     getAllProducts,
     updateProducts,
     deleteProducts,
-    addToWishlist
+    addToWishlist,
+    rating,
 };
-
-// 3:21:37
