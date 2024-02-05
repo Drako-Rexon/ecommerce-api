@@ -15,7 +15,7 @@ const {
     updatePassword,
     forgotPasswordToken,
     resetPassword
-} = require('../controller/userController');
+} = require('../controller/userCtrl');
 
 router.post('/register', createUser);
 router.put('/password', authMiddleware, updatePassword);

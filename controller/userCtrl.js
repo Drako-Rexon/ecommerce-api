@@ -269,4 +269,5 @@ module.exports = {
     updatePassword,
     forgotPasswordToken,
     resetPassword,
+    loginAdminCtrl
 };
