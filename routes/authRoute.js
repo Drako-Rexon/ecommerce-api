@@ -22,16 +22,22 @@ const {
     getUserCart,
     emptyCart,
     applyCoupon,
+    createOrder,
+    getOrders,
+    updateOrderStatus,
 } = require('../controller/userCtrl');
 
+router.get('/get-orders', authMiddleware, getOrders);
+router.put('/orders/update-order/:id', authMiddleware, isAdmin, updateOrderStatus);
 router.post('/register', createUser);
-router.put('/password', authMiddleware, updatePassword);
 router.post('/forgot-password-token', forgotPasswordToken);
-router.put('/reset-password/:token', resetPassword);
 router.post('/login', loginUserCtrl);
 router.post('/admin-login', loginAdminCtrl);
 router.post('/cart', authMiddleware, userCart);
 router.post('/cart/applyCoupon', authMiddleware, applyCoupon);
+router.post('/cart/create-order', authMiddleware, createOrder);
+router.put('/password', authMiddleware, updatePassword);
+router.put('/reset-password/:token', resetPassword);
 router.put('/edit-user', authMiddleware, updateUser);
 router.put('/save-address', authMiddleware, saveAddress);
 router.put('/block-user/:id', authMiddleware, isAdmin, blockUser);
