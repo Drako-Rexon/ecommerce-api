@@ -19,6 +19,9 @@ const {
     getWishlist,
     saveAddress,
     userCart,
+    getUserCart,
+    emptyCart,
+    applyCoupon,
 } = require('../controller/userCtrl');
 
 router.post('/register', createUser);
@@ -28,15 +31,18 @@ router.put('/reset-password/:token', resetPassword);
 router.post('/login', loginUserCtrl);
 router.post('/admin-login', loginAdminCtrl);
 router.post('/cart', authMiddleware, userCart);
-router.get('/all-users', getAllUsers);
-router.get('/refresh', handleRefreshToken);
-router.get('/logout', logout);
+router.post('/cart/applyCoupon', authMiddleware, applyCoupon);
 router.put('/edit-user', authMiddleware, updateUser);
 router.put('/save-address', authMiddleware, saveAddress);
 router.put('/block-user/:id', authMiddleware, isAdmin, blockUser);
 router.put('/unblock-user/:id', authMiddleware, isAdmin, unblockUser);
-router.get('/wishlist', authMiddleware, getWishlist);
-router.get('/:id', authMiddleware, isAdmin, getOnlyUser);
+router.delete('/empty-cart', authMiddleware, emptyCart);
 router.delete('/:id', deleteAUser);
+router.get('/wishlist', authMiddleware, getWishlist);
+router.get('/cart', authMiddleware, getUserCart);
+router.get('/:id', authMiddleware, isAdmin, getOnlyUser);
+router.get('/all-users', getAllUsers);
+router.get('/refresh', handleRefreshToken);
+router.get('/logout', logout);
 
 module.exports = router;

@@ -1,6 +1,8 @@
 const User = require('../models/userModel');
 const Product = require('../models/productModel');
+const Coupon = require('../models/couponModel');
 const Cart = require('../models/cartModel');
+
 const asyncHandler = require('express-async-handler');
 const { generateToken } = require('../config/jwtToken');
 const validateMongoId = require('../utils/validateMongoDBID');
@@ -352,6 +354,58 @@ const userCart = asyncHandler(async (req, res) => {
   }
 });
 
+const getUserCart = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  validateMongoId(_id);
+  try {
+    const cart = await Cart.findOne({ orderby: _id })
+    // .populate("products.product");
+    res.json(cart);
+  } catch (err) {
+    throw new Error(err);
+  }
+});
+
+const emptyCart = asyncHandler(async (req, res) => {
+  const { _id } = req.user;
+  validateMongoId(_id);
+  try {
+    const user = await User.findOne({ _id });
+    const cart = await Cart.findOneAndRemove({ orderby: user?._id });
+    res.json(cart);
+  } catch (err) {
+    throw new Error(err);
+  }
+});
+
+const applyCoupon = asyncHandler(async (req, res) => {
+  const { coupon } = req.body;
+  const { _id } = req.user;
+  validateMongoId(_id);
+  try {
+    const validCoupon = await Coupon.findOne({ name: coupon });
+    if (validCoupon == null) {
+      throw new Error("Invalid Coupon");
+    }
+    const user = await User.findOne({ _id });
+    let { cartTotal } = await Cart.findOne({
+      orderby: user?._id
+    })
+      // .populate("products.product");
+    let totalAfterDiscount = (cartTotal - (cartTotal * validCoupon.discount) / 100)
+      .toFixed(2);
+    await Cart.findOneAndUpdate(
+      { orderby: user?._id },
+      { totalAfterDiscount },
+      { new: true }
+    );
+
+    res.json(totalAfterDiscount);
+  } catch (err) {
+    throw new Error(err);
+  }
+});
+
 module.exports = {
   createUser,
   loginUserCtrl,
@@ -370,4 +424,7 @@ module.exports = {
   getWishlist,
   saveAddress,
   userCart,
+  getUserCart,
+  emptyCart,
+  applyCoupon,
 };
