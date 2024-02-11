@@ -204,7 +204,7 @@ const blockUser = asyncHandler(async (req, res) => {
 
     res.json({
       message: "User Blocked"
-    })
+    });
   } catch (err) {
     throw new Error(err);
   }
